@@ -45,20 +45,20 @@
                         <div class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
                             {{ current_user.username[0]|upper }}
                         </div>
-                        <span class="text-sm">{{ current_user.username }}</span>
-                    </div>
-                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">
-                        Войти
-                    </a>
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">
-                        Регистрация
-                    </a>
-                {% endif %}
-            </div>
+                    <span class="text-sm">{{ current_user.username }}</span>
+                </div>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Выйти
+                </a>
+            {% else %}
+                <button onclick="openModal('loginModal')" class="btn btn-outline btn-sm">
+                    Войти
+                </button>
+                <button onclick="openModal('registerModal')" class="btn btn-primary btn-sm">
+                    Регистрация
+                </button>
+            {% endif %}
+        </div>
         </div>
     </nav>
     <!-- Flash сообщения -->
@@ -219,5 +219,261 @@
     </script>
     
     {% block scripts %}{% endblock %}
+    <!-- Модальное окно входа -->
+<div id="loginModal" class="modal-overlay hidden">
+    <div class="modal max-w-md">
+        <div class="modal-header">
+            <h2 class="modal-title">Вход в систему</h2>
+            <button onclick="closeModal('loginModal')" class="btn btn-outline btn-icon">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="form-label">Email</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="example@email.com" required>
+                </div>
+                
+                <div>
+                    <label class="form-label">Пароль</label>
+                    <input type="password" id="loginPassword" class="form-control" required>
+                </div>
+                
+                <div class="flex items-center">
+                    <input type="checkbox" id="loginRemember" class="mr-2">
+                    <label for="loginRemember" class="text-sm">Запомнить меня</label>
+                </div>
+                
+                <div id="loginError" class="text-sm text-destructive hidden"></div>
+                
+                <button type="submit" class="btn btn-primary w-full">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </button>
+            </form>
+            
+            <div class="text-center mt-6">
+                <p class="text-sm text-muted mb-2">Нет аккаунта?</p>
+                <button onclick="switchToRegister()" class="btn btn-outline">
+                    <i class="bi bi-person-plus"></i> Зарегистрироваться
+                </button>
+            </div>
+            
+            <div class="mt-6 pt-6 border-t border-border">
+                <p class="text-sm text-muted mb-2"><strong>Тестовые аккаунты:</strong></p>
+                <p class="text-xs text-muted">Администратор: admin@example.com / admin123</p>
+                <p class="text-xs text-muted">Пользователь: user@example.com / user123</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно регистрации -->
+<div id="registerModal" class="modal-overlay hidden">
+    <div class="modal max-w-md">
+        <div class="modal-header">
+            <h2 class="modal-title">Регистрация</h2>
+            <button onclick="closeModal('registerModal')" class="btn btn-outline btn-icon">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <div class="modal-body">
+            <form id="registerForm" class="space-y-4">
+                <div>
+                    <label class="form-label">Имя пользователя</label>
+                    <input type="text" id="registerUsername" class="form-control" placeholder="Введите имя" required>
+                    <p class="text-xs text-muted mt-1">От 2 до 64 символов</p>
+                </div>
+                
+                <div>
+                    <label class="form-label">Email</label>
+                    <input type="email" id="registerEmail" class="form-control" placeholder="example@email.com" required>
+                </div>
+                
+                <div>
+                    <label class="form-label">Пароль</label>
+                    <input type="password" id="registerPassword" class="form-control" required>
+                    <p class="text-xs text-muted mt-1">Не менее 6 символов</p>
+                </div>
+                
+                <div>
+                    <label class="form-label">Повторите пароль</label>
+                    <input type="password" id="registerPassword2" class="form-control" required>
+                </div>
+                
+                <div id="registerError" class="text-sm text-destructive hidden"></div>
+                <button type="submit" class="btn btn-primary w-full">
+                    <i class="bi bi-person-plus"></i> Зарегистрироваться
+                </button>
+            </form>
+            
+            <div class="text-center mt-6">
+                <p class="text-sm text-muted mb-2">Уже есть аккаунт?</p>
+                <button onclick="switchToLogin()" class="btn btn-outline">
+                    <i class="bi bi-box-arrow-in-right"></i> Войти
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипты для работы с модальными окнами -->
+<script>
+    // Переключение между модальными окнами
+    function switchToRegister() {
+        closeModal('loginModal');
+        setTimeout(() => openModal('registerModal'), 300);
+    }
+    
+    function switchToLogin() {
+        closeModal('registerModal');
+        setTimeout(() => openModal('loginModal'), 300);
+    }
+    
+    // Обработка формы входа
+    document.getElementById('loginForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const remember = document.getElementById('loginRemember').checked;
+        
+        const errorElement = document.getElementById('loginError');
+        errorElement.classList.add('hidden');
+        
+        try {
+            const response = await fetch('/auth/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password, remember })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Показываем уведомление
+                showNotification(data.message, 'success');
+                
+                // Закрываем модальное окно
+                closeModal('loginModal');
+                
+                // Обновляем страницу
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                errorElement.textContent = data.message;
+                errorElement.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorElement.textContent = 'Ошибка сети. Попробуйте позже.';
+            errorElement.classList.remove('hidden');
+        }
+    });
+    
+    // Обработка формы регистрации
+    document.getElementById('registerForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value;
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const password2 = document.getElementById('registerPassword2').value;
+        
+        const errorElement = document.getElementById('registerError');
+        errorElement.classList.add('hidden');
+        
+        // Базовая валидация на клиенте
+        if (username.length < 2 || username.length > 64) {
+            errorElement.textContent = 'Имя пользователя должно быть от 2 до 64 символов';
+            errorElement.classList.remove('hidden');
+            return;
+        }
+        
+        if (password.length < 6) {
+            errorElement.textContent = 'Пароль должен быть не менее 6 символов';
+            errorElement.classList.remove('hidden');
+            return;
+        }
+        
+        if (password !== password2) {
+            errorElement.textContent = 'Пароли не совпадают';
+            errorElement.classList.remove('hidden');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/auth/api/register', {method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, email, password, password2 })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Показываем уведомление
+                showNotification(data.message, 'success');
+                
+                // Закрываем модальное окно
+                closeModal('registerModal');
+                
+                // Обновляем страницу
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                errorElement.textContent = data.message;
+                errorElement.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorElement.textContent = 'Ошибка сети. Попробуйте позже.';
+            errorElement.classList.remove('hidden');
+        }
+    });
+    
+    // Функция для показа уведомлений
+    function showNotification(message, type = 'info') {
+        // Создаём элемент уведомления
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg fade-in ${
+            type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' :
+            type === 'error' ? 'bg-red-50 text-red-800 border border-red-200' :
+            'bg-blue-50 text-blue-800 border border-blue-200'
+        }`;
+        notification.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i class="bi ${
+                    type === 'success' ? 'bi-check-circle' :
+                    type === 'error' ? 'bi-exclamation-circle' :
+                    'bi-info-circle'
+                }"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Автоматическое скрытие через 5 секунд
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(20px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+    
+    // Автоматическое открытие модального окна при переходе на /login или /register
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.location.pathname === '/auth/login' || window.location.pathname === '/login') {
+            openModal('loginModal');
+            window.history.replaceState({}, document.title, '/');
+        } else if (window.location.pathname === '/auth/register' || window.location.pathname === '/register') {
+            openModal('registerModal');
+            window.history.replaceState({}, document.title, '/');
+        }
+    });
+</script>
+
 </body>
 </html>

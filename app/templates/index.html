@@ -13,10 +13,13 @@
         </p>
         
         {% if not current_user.is_authenticated %}
-        <div class="flex sm:flex-row gap-4 justify-center" id="start">
-            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
-                <i class="bi bi-person-plus"></i> Начать
-            </a>
+        <div class="flex sm:flex-row gap-4 justify-center">
+            <button onclick="openModal('registerModal')" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i> Начать бесплатно
+            </button>
+            <button onclick="openModal('loginModal')" class="btn btn-outline btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i> Войти
+            </button>
         </div>
         {% endif %}
     </div>
@@ -164,7 +167,7 @@
                     </a>
                 {% else %}
                     <p class="text-muted">Войдите в систему для доступа ко всем функциям</p>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                    <button onclick="openModal('loginModal')" class="btn btn-primary">
                         <i class="bi bi-box-arrow-in-right"></i> Войти
                     </a>
                 {% endif %}
