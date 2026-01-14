@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация - Nutrition Calculator{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="card">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-lg mb-4">
+                <i class="bi bi-person-plus text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-medium">Регистрация</h1>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.register') }}" class="space-y-4">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                <label for="username" class="block mb-2">Имя пользователя</label>
+                {% if form.username.errors %}
+                {{ form.username(class="form-control border-destructive", placeholder="Введите имя") }}
+                {% else %}
+                {{ form.username(class="form-control", placeholder="Введите имя") }}
+                {% endif %}
+                {% for error in form.username.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+                <p class="text-xs text-muted-foreground mt-1">От 2 до 64 символов</p>
+            </div>
+            
+            <div>
+                <label for="email" class="block mb-2">Email</label>
+                {% if form.email.errors %}
+                {{ form.email(class="form-control border-destructive", placeholder="example@email.com") }}
+                {% else %}
+                {{ form.email(class="form-control", placeholder="example@email.com") }}
+                {% endif %}
+                {% for error in form.email.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <div>
+                <label for="password" class="block mb-2">Пароль</label>
+                {% if form.password.errors %}
+                {{ form.password(class="form-control border-destructive") }}
+                {% else %}
+                {{ form.password(class="form-control") }}
+                {% endif %}
+                {% for error in form.password.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+                <p class="text-xs text-muted-foreground mt-1">Не менее 6 символов</p>
+            </div>
+            
+            <div>
+                <label for="password2" class="block mb-2">Повторите пароль</label>
+                {% if form.password2.errors %}
+                {{ form.password2(class="form-control border-destructive") }}
+                {% else %}
+                {{ form.password2(class="form-control") }}
+                {% endif %}
+                {% for error in form.password2.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full">
+                <i class="bi bi-person-plus"></i> Зарегистрироваться
+            </button>
+        </form>
+        
+        <div class="text-center mt-6">
+            <p class="text-sm text-muted-foreground mb-2">Уже есть аккаунт?</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Войти
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

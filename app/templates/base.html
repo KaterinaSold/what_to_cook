@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Что готовить{% endblock %}</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    {% block head %}{% endblock %}
+</head>
+<body class="h-full bg-background text-foreground">
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{{ url_for('index') }}" class="navbar-brand">
+                <span>Что готовить</span>
+            </a>
+            
+            <div class="navbar-menu">
+                <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                    <i class="bi bi-house-door"></i> Главная
+                </a>
+                
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('user.calculate') }}" class="nav-link {% if request.endpoint == 'user.calculate' %}active{% endif %}">
+                        <i class="bi bi-calculator-fill"></i> Расчёт
+                    </a>
+                    <a href="{{ url_for('user.my_ingredients') }}" class="nav-link {% if request.endpoint == 'user.my_ingredients' %}active{% endif %}">
+                        <i class="bi bi-basket"></i> Ингредиенты
+                    </a>
+                    <a href="{{ url_for('user.my_recipes') }}" class="nav-link {% if request.endpoint == 'user.my_recipes' %}active{% endif %}">
+                        <i class="bi bi-journal-text"></i> Рецепты
+                    </a>
+                    
+                    {% if current_user.is_admin %}
+                        <a href="{{ url_for('admin.ingredients') }}" class="nav-link {% if request.endpoint == 'admin.ingredients' %}active{% endif %}">
+                            <i class="bi bi-shield-check"></i> Админ
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+            
+            <div class="flex items-center gap-4">
+                {% if current_user.is_authenticated %}
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                            {{ current_user.username[0]|upper }}
+                        </div>
+                        <span class="text-sm">{{ current_user.username }}</span>
+                    </div>
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-outline btn-sm">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline btn-sm">
+                        Войти
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-sm">
+                        Регистрация
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <!-- Flash сообщения -->
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="space-y-2">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} fade-in">
+                            <i class="bi 
+                                {% if category == 'success' %}bi-check-circle
+                                {% elif category == 'error' or category == 'danger' %}bi-exclamation-circle
+                                {% elif category == 'warning' %}bi-exclamation-triangle
+                                {% else %}bi-info-circle{% endif %}">
+                            </i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div class="container">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div>
+                    <h4 class="font-medium">Nutrition Calculator</h4>
+                    <p class="text-sm text-muted mt-1">
+                        Система для расчёта и управления рационом питания
+                    </p>
+                </div>
+                <div class="text-sm text-muted text-center md:text-right">
+                    <p>Курсовая работа</p>
+                    <p>Инструментальные средства информационных систем</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Модальные окна -->
+    <div id="modalContainer"></div>
+    <!-- Скрипты -->
+    <script>
+        // Утилиты
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        }
+        
+        // Закрытие модальных окон по клику вне контента
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.add('hidden');
+            }
+        });
+        
+        // Удаление элементов
+        document.addEventListener('DOMContentLoaded', function() {
+            // Кнопки удаления
+            document.querySelectorAll('[data-delete]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const type = this.dataset.type;
+                    const id = this.dataset.id;
+                    const name = this.dataset.name;
+                    
+                    if (confirm(`Удалить "${name}"?`)) {
+                        fetch(`/api/${type}/delete/${id}`, {
+                            method: 'DELETE'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Плавное удаление элемента
+                                const item = this.closest('tr') || this.closest('.card') || this.closest('[data-item]');
+                                if (item) {
+                                    item.style.opacity = '0';
+                                    item.style.transform = 'translateY(-10px)';
+                                    setTimeout(() => item.remove(), 300);
+                                } else {
+                                    location.reload();
+                                }
+                            } else {
+                                alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+                            }
+                        });
+                    }
+                });
+            });
+            
+            // Переключение публичности
+            document.querySelectorAll('[data-toggle-public]').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const type = this.dataset.type;
+                    const id = this.dataset.id;
+                    
+                    fetch(`/api/${type}/toggle-public/${id}`, {
+                        method: 'POST'
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+                });
+            });
+            
+            // Автоматическое скрытие flash сообщений
+            setTimeout(() => {
+                document.querySelectorAll('.alert').forEach(alert => {
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 300);
+                });
+            }, 5000);
+        });
+        
+        // Функция для добавления полей ингредиентов
+        window.addIngredientField = function(containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const index = container.children.length;
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 mb-2';
+            div.innerHTML = `
+                <select class="form-control flex-1" name="ingredient_${index}" required>
+                    <option value="">Выберите ингредиент</option>
+                    {% for ing in ingredients|default([]) %}
+                    <option value="{{ ing.id }}">{{ ing.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" class="form-control w-24" name="amount_${index}" placeholder="г" required min="1">
+                <button type="button" class="btn btn-outline btn-icon" onclick="this.parentElement.remove()">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(div);
+        };
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

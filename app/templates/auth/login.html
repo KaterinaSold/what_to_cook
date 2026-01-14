@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - Nutrition Calculator{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    <div class="card">
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 bg-primary text-primary-foreground rounded-lg mb-4">
+                <i class="bi bi-box-arrow-in-right text-xl"></i>
+            </div>
+            <h1 class="text-2xl font-medium">Вход в систему</h1>
+        </div>
+        
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            {{ form.hidden_tag() }}
+            
+            <div class="mb-4">
+                <label for="email" class="block mb-2">Email</label>
+                {% if form.email.errors %}
+                {{ form.email(class="form-control border-destructive", placeholder="example@email.com") }}
+                {% else %}
+                {{ form.email(class="form-control", placeholder="example@email.com") }}
+                {% endif %}
+                {% for error in form.email.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-4">
+                <label for="password" class="block mb-2">Пароль</label>
+                {% if form.password.errors %}
+                {{ form.password(class="form-control border-destructive") }}
+                {% else %}
+                {{ form.password(class="form-control") }}
+                {% endif %}
+                {% for error in form.password.errors %}
+                <p class="text-sm text-destructive mt-1">{{ error }}</p>
+                {% endfor %}
+            </div>
+            
+            <div class="mb-4 flex items-center">
+                {{ form.remember_me(class="mr-2") }}
+                {{ form.remember_me.label(class="text-sm") }}
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-full mb-4">
+                <i class="bi bi-box-arrow-in-right"></i> Войти
+            </button>
+        </form>
+        
+        <div class="mt-6 text-center">
+            <p class="mb-2">Нет аккаунта?</p>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-outline">
+                <i class="bi bi-person-plus me-1"></i>Зарегистрироваться
+            </a>
+        </div>
+        
+        <div class="mt-6 pt-6 border-t border-border text-sm text-muted-foreground">
+            <p class="mb-1"><strong>Тестовые аккаунты:</strong></p>
+            <p class="mb-1">Администратор: admin@example.com / admin123</p>
+            <p class="mb-0">Пользователь: user@example.com / user123</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

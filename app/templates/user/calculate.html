@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+
+{% block title %}Расчёт рациона - Nutrition Calculator{% endblock %}
+
+{% block head %}
+<style>
+    .nutrition-card {
+        transition: transform 0.2s;
+    }
+    .nutrition-card:hover {
+        transform: translateY(-2px);
+    }
+    .nutrition-value {
+        font-feature-settings: "tnum";
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Форма расчёта -->
+    <div>
+        <div class="card">
+            <h2 class="text-2xl font-medium mb-6">
+                <i class="bi bi-calculator-fill mr-2"></i>Калькулятор рациона
+            </h2>
+            
+            <form method="POST" action="{{ url_for('user.calculate') }}" class="space-y-6">
+                {{ form.hidden_tag() }}
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-2">Калории</label>
+                        {{ form.target_calories(class="form-control", placeholder="2000") }}
+                    </div>
+                    <div>
+                        <label class="block mb-2">Белки (г)</label>
+                        {{ form.target_proteins(class="form-control", placeholder="150") }}
+                    </div>
+                    <div>
+                        <label class="block mb-2">Жиры (г)</label>
+                        {{ form.target_fats(class="form-control", placeholder="70") }}
+                    </div>
+                    <div>
+                        <label class="block mb-2">Углеводы (г)</label>
+                        {{ form.target_carbs(class="form-control", placeholder="250") }}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-full py-3">
+                    <i class="bi bi-lightning-charge"></i> Рассчитать рацион
+                </button>
+            </form>
+        </div>
+        
+        <!-- Доступные ингредиенты -->
+        <div class="card mt-6">
+            <h3 class="text-xl font-medium mb-4">
+                <i class="bi bi-basket mr-2"></i>Доступные ингредиенты
+            </h3>
+            <div class="max-h-60 overflow-y-auto">
+                <div class="grid grid-cols-1 gap-2">
+                    {% for ingredient in ingredients %}
+                    <div class="flex items-center justify-between p-3 bg-accent rounded-lg">
+                        <div>
+                            <span class="font-medium">{{ ingredient.name }}</span>
+                            <span class="text-sm text-muted-foreground ml-2">
+                                {{ ingredient.calories }} ккал
+                            </span>
+                        </div>
+                        <div class="text-sm">
+                            <span class="bg-primary text-primary-foreground px-2 py-1 rounded">
+                                {{ ingredient.proteins }}г
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Результаты -->
+    <div>
+        {% if result and result.success %}
+        <div class="card mb-6">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-medium">
+                    <i class="bi bi-check-circle-fill text-green-500 mr-2"></i>Результаты расчёта
+                </h2>
+                <span class="badge badge-primary">{{ result.total_weight|round(1) }} г</span>
+            </div>
+            
+            <!-- Сводка по КБЖУ -->
+            <div class="grid grid-cols-4 gap-4 mb-6">
+                <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
+                    <div class="text-2xl font-medium text-green-600 nutrition-value">
+                        {{ result.total_nutrition.calories }}
+                    </div>
+                    <div class="text-sm text-muted-foreground">ккал</div>
+                    <div class="text-xs mt-1">
+                        <span class="{% if result.deviations.calories|abs < 5 %}text-green-500{% else %}text-yellow-500{% endif %}">
+                            {{ result.deviations.calories }}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
+                    <div class="text-2xl font-medium text-blue-600 nutrition-value">
+                        {{ result.total_nutrition.proteins }}
+                    </div>
+                    <div class="text-sm text-muted-foreground">белки</div>
+                    <div class="text-xs mt-1">
+                        <span class="{% if result.deviations.proteins|abs < 5 %}text-green-500{% else %}text-yellow-500{% endif %}">
+                            {{ result.deviations.proteins }}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
+                    <div class="text-2xl font-medium text-yellow-600 nutrition-value">
+                        {{ result.total_nutrition.fats }}
+                    </div>
+                    <div class="text-sm text-muted-foreground">жиры</div>
+                    <div class="text-xs mt-1">
+                        <span class="{% if result.deviations.fats|abs < 5 %}text-green-500{% else %}text-yellow-500{% endif %}">
+                            {{ result.deviations.fats }}%
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
+                    <div class="text-2xl font-medium text-purple-600 nutrition-value">
+                        {{ result.total_nutrition.carbs }}
+                    </div>
+                    <div class="text-sm text-muted-foreground">углеводы</div>
+                    <div class="text-xs mt-1">
+                        <span class="{% if result.deviations.carbs|abs < 5 %}text-green-500{% else %}text-yellow-500{% endif %}">
+                            {{ result.deviations.carbs }}%
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Рекомендуемые ингредиенты -->
+            <h3 class="text-xl font-medium mb-4">Рекомендуемые ингредиенты</h3>
+            <div class="space-y-3">
+                {% for ing_data in result.ingredients.values() %}
+                <div class="flex items-center justify-between p-3 bg-accent rounded-lg">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium">{{ ing_data.ingredient.name }}</span>
+                            {% if ing_data.ingredient.is_public %}
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Общий</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-sm text-muted-foreground mt-1">
+                            <span class="mr-3">{{ ing_data.ingredient.calories|round(1) }} ккал/100г</span>
+                            <span>Б:{{ ing_data.ingredient.proteins|round(1) }} Ж:{{ ing_data.ingredient.fats|round(1) }} У:{{ ing_data.ingredient.carbs|round(1) }}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-medium">{{ ing_data.grams|round(1) }} г</div>
+                        <div class="text-sm text-muted-foreground">
+                            {{ ing_data.nutrition.calories|round(1) }} ккал
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Рекомендуемые рецепты -->
+        {% if best_recipes %}
+        <div class="card">
+            <h2 class="text-2xl font-medium mb-6">
+                <i class="bi bi-stars mr-2"></i>Рекомендуемые рецепты
+            </h2>
+            
+            <div class="space-y-4">
+                {% for recipe_data in best_recipes %}
+                <div class="border border-border rounded-lg p-4 hover:bg-accent transition-colors">
+                    <div class="flex justify-between items-start mb-3">
+                        <h3 class="text-lg font-medium">{{ recipe_data.recipe.name }}</h3>
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-primary text-primary-foreground px-2 py-1 rounded">
+                                {{ recipe_data.score|round(2) }}
+                            </span>
+                            <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                {{ recipe_data.match_percentage|round(1) }}% совпадение
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-2 mb-3">
+                        <div class="text-center">
+                            <div class="text-sm font-medium">{{ recipe_data.nutrition.calories }}</div>
+                            <div class="text-xs text-muted-foreground">ккал</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-medium">{{ recipe_data.nutrition.proteins }}г</div>
+                            <div class="text-xs text-muted-foreground">белки</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-medium">{{ recipe_data.nutrition.fats }}г</div>
+                            <div class="text-xs text-muted-foreground">жиры</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-sm font-medium">{{ recipe_data.nutrition.carbs }}г</div>
+                            <div class="text-xs text-muted-foreground">углеводы</div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-sm text-muted-foreground mb-3">
+                        {% if recipe_data.recipe.description %}
+                        <p>{{ recipe_data.recipe.description|truncate(100) }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="text-xs text-muted-foreground">
+                            <i class="bi bi-basket"></i>
+                            {{ recipe_data.matching_count }} совпадающих ингредиентов
+                        </div>
+                        <a href="{{ url_for('user.my_recipes') }}?recipe={{ recipe_data.recipe.id }}" 
+                           class="text-sm text-primary hover:underline">
+                            Подробнее →
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        
+        {% else %}
+        <!-- Инструкция при первом посещении -->
+        <div class="card">
+            <h2 class="text-2xl font-medium mb-6">
+                <i class="bi bi-info-circle mr-2"></i>Инструкция
+            </h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        1
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-1">Введите целевые значения КБЖУ</h4>
+                        <p class="text-sm text-muted-foreground">
+                            Укажите желаемые калории, белки, жиры и углеводы для вашего рациона.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        2
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-1">Система рассчитает оптимальные ингредиенты</h4>
+                        <p class="text-sm text-muted-foreground">
+                            Алгоритм подберёт наилучшие количества доступных ингредиентов.
+                        </p>
+                    </div>
+                </div>
+                
+                <div class="flex items-start gap-3">
+                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
+                        3
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-1">Получите рекомендации по рецептам</h4>
+                        <p class="text-sm text-muted-foreground">
+                            На основе результатов система предложит подходящие рецепты.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-accent rounded-lg">
+                <h4 class="font-medium mb-2">💡 Совет</h4>
+                <p class="text-sm text-muted-foreground">
+                    Для начала используйте справочные значения или рассчитайте свои цели
+                    с помощью калькулятора потребностей.
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

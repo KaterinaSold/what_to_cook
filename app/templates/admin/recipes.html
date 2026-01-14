@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% block title %}Управление рецептами - Nutrition Calculator{% endblock %}
+{% block content %}
+<div class="mb-6 flex items-center justify-between">
+    <h1 class="text-2xl font-medium">
+        <i class="bi bi-journal-bookmark-fill mr-2"></i>Управление рецептами
+    </h1>
+    <button onclick="openModal('addRecipeModal')" class="btn btn-primary">
+        <i class="bi bi-plus-lg"></i> Добавить рецепт
+    </button>
+</div>
+<!-- Поиск и фильтры -->
+<div class="card mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-2">
+            <label class="block mb-2 text-sm">Поиск</label>
+            <form method="GET" class="flex gap-2">
+                <input type="text" name="search" value="{{ search }}" 
+                       placeholder="Название рецепта..." 
+                       class="form-control flex-1">
+                <button type="submit" class="btn btn-outline">
+                    <i class="bi bi-search"></i> Поиск
+                </button>
+            </form>
+        </div>
+        
+        <div>
+            <label class="block mb-2 text-sm">Статус</label>
+            <select name="filter" class="form-control" onchange="this.form.submit()">
+                <option value="all" {% if filter_type == 'all' %}selected{% endif %}>Все рецепты</option>
+                <option value="public" {% if filter_type == 'public' %}selected{% endif %}>Только общие</option>
+                <option value="private" {% if filter_type == 'private' %}selected{% endif %}>Только приватные</option>
+            </select>
+        </div>
+    </div>
+</div>
+<!-- Статистика -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    <div class="card text-center">
+        <div class="text-2xl font-medium">{{ recipes.total }}</div>
+        <div class="text-sm text-muted-foreground">Всего рецептов</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-2xl font-medium text-green-600">
+            {{ recipes.items|selectattr('is_public')|list|length }}
+        </div>
+        <div class="text-sm text-muted-foreground">Общих</div>
+    </div>
+    <div class="card text-center">
+        <div class="text-2xl font-medium text-blue-600">
+            {{ recipes.items|rejectattr('is_public')|list|length }}
+        </div>
+        <div class="text-sm text-muted-foreground">Приватных</div>
+    </div>
+</div>
+<!-- Таблица рецептов -->
+<div class="card">
+    {% if recipes.items %}
+    <div class="overflow-x-auto">
+        <table class="table w-full">
+            <thead>
+                <tr>
+                    <th class="text-left">Рецепт</th>
+                    <th class="text-center">КБЖУ</th>
+                    <th class="text-center">Ингредиенты</th>
+                    <th class="text-center">Автор</th>
+                    <th class="text-center">Статус</th>
+                    <th class="text-center">Дата</th>
+                    <th class="text-right">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for recipe in recipes.items %}
+                {% set nutrition = recipe.calculate_nutrition() %}
+                <tr class="hover:bg-accent">
+                    <td>
+                        <div class="font-medium">{{ recipe.name }}</div>
+                        {% if recipe.description %}
+                        <div class="text-sm text-muted-foreground mt-1">
+                            {{ recipe.description|truncate(50) }}
+                        </div>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <div class="inline-flex flex-col items-center gap-1">
+                            <span class="text-xs px-2 py-1 bg-red-50 text-red-700 rounded">
+                                {{ nutrition.calories }} ккал
+                            </span>
+                            <div class="flex gap-1">
+                                <span class="text-xs px-2 py-0.5 bg-blue-50 text-blue-700 rounded">
+                                    Б:{{ nutrition.proteins }}
+                                </span>
+                                <span class="text-xs px-2 py-0.5 bg-yellow-50 text-yellow-700 rounded">
+                                    Ж:{{ nutrition.fats }}
+                                </span>
+                                <span class="text-xs px-2 py-0.5 bg-purple-50 text-purple-700 rounded">
+                                    У:{{ nutrition.carbs }}
+                                </span>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="text-sm">
+                            {{ recipe.ingredients|length }} шт.
+                        </div>
+                        <div class="text-xs text-muted-foreground">
+                            {% for ingredient in recipe.ingredients[:2] %}
+                            {{ ingredient.name }}{% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                            {% if recipe.ingredients|length > 2 %}
+                            ...
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        {% if recipe.creator %}
+                        <span class="text-sm">{{ recipe.creator.username }}</span>
+                        {% if recipe.creator.is_admin %}
+                        <span class="text-xs text-muted-foreground">(админ)</span>
+                        {% endif %}
+                        {% else %}
+                        <span class="text-sm text-muted-foreground">Система</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <button data-action="toggle-public" 
+                                data-type="recipe" 
+                                data-id="{{ recipe.id }}"
+                                class="btn btn-sm {% if recipe.is_public %}btn-success{% else %}btn-secondary{% endif %}">
+                            <i class="bi {% if recipe.is_public %}bi-eye-fill{% else %}bi-eye-slash-fill{% endif %}"></i>
+                            {% if recipe.is_public %}Общий{% else %}Приватный{% endif %}
+                        </button>
+                    </td>
+                    <td class="text-center text-sm text-muted-foreground">
+                        {{ recipe.created_at.strftime('%d.%m.%Y') }}
+                    </td>
+                    <td class="text-right">
+                        <div class="flex justify-end gap-2">
+                            <button onclick="openModal('viewRecipeModal{{ recipe.id }}')" 
+                                    class="btn btn-outline btn-sm">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button onclick="openModal('editRecipeModal{{ recipe.id }}')" 
+                                    class="btn btn-outline btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button data-action="delete" 
+                                    data-type="recipe" 
+                                    data-id="{{ recipe.id }}" 
+                                    data-name="{{ recipe.name }}"
+                                    class="btn btn-outline btn-sm text-destructive">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Пагинация -->
+    {% if recipes.pages > 1 %}
+    <div class="flex justify-center items-center gap-2 mt-6 pt-6 border-t border-border">
+        {% if recipes.has_prev %}
+        <a href="?page={{ recipes.prev_num }}{% if search %}&search={{ search }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}"
+           class="btn btn-outline">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        {% endif %}
+        
+        <span class="text-sm text-muted-foreground">
+            Страница {{ recipes.page }} из {{ recipes.pages }}
+        </span>
+        
+        {% if recipes.has_next %}
+        <a href="?page={{ recipes.next_num }}{% if search %}&search={{ search }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}"
+           class="btn btn-outline">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <div class="text-center py-12">
+        <i class="bi bi-journal-text text-4xl text-muted-foreground mb-4"></i>
+        <h3 class="text-xl font-medium mb-2">Нет рецептов</h3>
+        <p class="text-muted-foreground mb-4">
+            {% if search %}
+            По запросу "{{ search }}" ничего не найдено
+            {% else %}
+            Добавьте первый рецепт
+            {% endif %}
+        </p>
+        <button onclick="openModal('addRecipeModal')" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Добавить рецепт
+        </button>
+    </div>
+    {% endif %}
+</div>
+<!-- Модальное окно добавления рецепта -->
+<div id="addRecipeModal" class="modal hidden">
+    <div class="modal-content max-w-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-medium">Добавить рецепт</h2>
+            <button onclick="closeModal('addRecipeModal')" class="btn btn-outline">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <form method="POST" action="{{ url_for('admin.recipes') }}" class="space-y-4">
+            {{ form.hidden_tag() }}
+            
+            <div>
+                <label class="block mb-2">Название рецепта</label>
+                {{ form.name(class="form-control", placeholder="Например: Курица с брокколи") }}
+            </div>
+            
+            <div>
+                <label class="block mb-2">Описание (опционально)</label>
+                {{ form.description(class="form-control", rows="2", placeholder="Краткое описание рецепта...") }}
+            </div>
+            
+            <div>
+                <label class="block mb-2">Инструкции приготовления</label>
+                {{ form.instructions(class="form-control", rows="4", placeholder="Пошаговые инструкции...", required=true) }}
+            </div>
+            
+            <div>
+                <label class="block mb-2">URL изображения (опционально)</label>
+                {{ form.image_url(class="form-control", placeholder="https://example.com/image.jpg") }}
+            </div>
+            
+            <div class="flex items-center">
+                {{ form.is_public(class="mr-2") }}
+                {{ form.is_public.label(class="text-sm") }}
+            </div>
+            
+            <div class="flex gap-3 pt-6 border-t border-border">
+                <button type="button" onclick="closeModal('addRecipeModal')" 
+                        class="btn btn-outline flex-1">
+                    Отмена
+                </button>
+                <button type="submit" class="btn btn-primary flex-1">
+                    Сохранить рецепт
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
