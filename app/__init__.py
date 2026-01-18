@@ -38,7 +38,7 @@ def create_app(config_class=Config):
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
     from app.user_routes import bp as user_bp
-    app.register_blueprint(user_bp)
+    app.register_blueprint(user_bp, url_prefix='/user')
     
     # Главный маршрут
     @app.route('/')

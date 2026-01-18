@@ -1,12 +1,12 @@
+/* Импорт иконок */
+@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
+
 /* Импорт шрифта */
 @font-face {
     font-family: Lineyka;
     src: 
     local("Lineyka"),
     url("Lineyka.otf") format("opentype");}
-
-/* Импорт иконок */
-@import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
 
 /* CSS переменные из вашего дизайна */
 :root {
@@ -21,7 +21,7 @@
   --secondary-foreground: #030213;
   --muted: #f8f9fa;
   --muted-foreground: #6c757d;
-  --accent: #f8f9fa;
+  --accent: #fff;
   --accent-foreground: #030213;
   --destructive: #FF6600;
   --destructive-foreground: #ffffff;
@@ -533,12 +533,16 @@ a:hover {
 .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 
+.br-rad {border-radius: var(--radius-lg);}
 /* Отступы */
 .mt-1 { margin-top: 0.25rem; }
 .mt-2 { margin-top: 0.5rem; }
 .mt-4 { margin-top: 1rem; }
 .mt-6 { margin-top: 1.5rem; }
 .mt-8 { margin-top: 2rem; }
+
+.mr-4 {margin-right: 1vh;}
+.ml-4 {margin-left: 1vh;}
 
 .mb-1 { margin-bottom: 0.25rem; }
 .mb-2 { margin-bottom: 0.5rem; }

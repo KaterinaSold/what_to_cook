@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Мои ингредиенты - Nutrition Calculator{% endblock %}
+{% block title %}Мои ингредиенты - Что готовить{% endblock %}
 
 {% block content %}
 <div class="mb-6 flex items-center justify-between">
-    <h1 class="text-2xl font-medium">
-        <i class="bi bi-basket mr-2"></i>Мои ингредиенты
+    <h1 class="text-2xl font-medium ml-4">
+        Мои ингредиенты
     </h1>
-    <button onclick="openModal('addIngredientModal')" class="btn btn-primary">
-        <i class="bi bi-plus-lg"></i> Добавить ингредиент
+    <button onclick="openModal('addIngredientModal')" class="btn btn-primary mr-4">
+        <i class="bi bi-plus-lg"></i> 
     </button>
 </div>
 
@@ -43,21 +43,6 @@
                 </select>
             </form>
         </div>
-        
-        <div>
-            <label class="block mb-2 text-sm">Статус</label>
-            <div class="flex gap-2">
-                <a href="?filter=all" class="btn btn-outline {% if not request.args.get('filter') %}bg-primary text-primary-foreground{% endif %}">
-                    Все
-                </a>
-                <a href="?filter=public" class="btn btn-outline {% if request.args.get('filter') == 'public' %}bg-primary text-primary-foreground{% endif %}">
-                    Общие
-                </a>
-                <a href="?filter=private" class="btn btn-outline {% if request.args.get('filter') == 'private' %}bg-primary text-primary-foreground{% endif %}">
-                    Мои
-                </a>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -68,13 +53,12 @@
         <table class="table w-full">
             <thead>
                 <tr>
-                    <th class="text-left">Название</th>
+                    <th class="text-center">Название</th>
                     <th class="text-center">Калории</th>
                     <th class="text-center">Белки</th>
                     <th class="text-center">Жиры</th>
                     <th class="text-center">Углеводы</th>
-                    <th class="text-center">Статус</th>
-                    <th class="text-right">Действия</th>
+                    <th class="text-center">Действия</th>
                 </tr>
             </thead>
             <tbody>
@@ -101,22 +85,12 @@
                             {{ ingredient.carbs }}г
                         </span>
                     </td>
-                    <td class="text-center">
-                        {% if ingredient.is_public %}
-                        <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                            <i class="bi bi-eye-fill mr-1"></i> Общий
-                        </span>
-                        {% else %}
-                        <span class="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
-                            <i class="bi bi-eye-slash-fill mr-1"></i> Личный
-                        </span>
-                        {% endif %}
-                    </td>
                     <td class="text-right">
                         {% if current_user.is_admin or ingredient.user_id == current_user.id %}
                         <div class="flex justify-end gap-2">
-                            <button onclick="openModal('editIngredientModal{{ ingredient.id }}')" 
-                                    class="btn btn-outline text-sm">
+                            <button onclick="editIngredient(this.getAttribute('data-ingredient-id'))"
+                                    class="btn btn-outline text-sm"
+                                    data-ingredient-id="{{ ingredient.id }}" >
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button data-action="delete" 
@@ -176,125 +150,4 @@
     {% endif %}
 </div>
 
-<!-- Модальное окно добавления ингредиента -->
-<div id="addIngredientModal" class="modal hidden">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-medium">Добавить ингредиент</h2>
-            <button onclick="closeModal('addIngredientModal')" class="btn btn-outline">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        
-        <form method="POST" action="{{ url_for('user.my_ingredients') }}" class="space-y-4">
-            {{ form.hidden_tag() }}
-            
-            <div>
-                <label class="block mb-2">Название ингредиента</label>
-                {{ form.name(class="form-control", placeholder="Например: Куриная грудка") }}
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block mb-2">Калории (на 100г)</label>
-                    {{ form.calories(class="form-control", placeholder="165") }}
-                </div>
-                <div>
-                    <label class="block mb-2">Белки (г на 100г)</label>
-                    {{ form.proteins(class="form-control", placeholder="31") }}
-                </div>
-                <div>
-                    <label class="block mb-2">Жиры (г на 100г)</label>
-                    {{ form.fats(class="form-control", placeholder="3.6") }}
-                </div>
-                <div>
-                    <label class="block mb-2">Углеводы (г на 100г)</label>
-                    {{ form.carbs(class="form-control", placeholder="0") }}
-                </div>
-            </div>
-            
-            {% if current_user.is_admin %}
-            <div class="flex items-center">
-                {{ form.is_public(class="mr-2") }}
-                {{ form.is_public.label(class="text-sm") }}
-            </div>
-            {% endif %}
-            
-            <div class="flex gap-3 pt-4">
-                <button type="button" onclick="closeModal('addIngredientModal')" 
-                        class="btn btn-outline flex-1">
-                    Отмена
-                </button>
-                <button type="submit" class="btn btn-primary flex-1">
-                    Сохранить
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Модальные окна редактирования (динамически создаются для каждого ингредиента) -->
-{% for ingredient in ingredients.items %}
-<div id="editIngredientModal{{ ingredient.id }}" class="modal hidden">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-xl font-medium">Редактировать ингредиент</h2>
-            <button onclick="closeModal('editIngredientModal{{ ingredient.id }}')" class="btn btn-outline">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-        
-        <form method="POST" action="{{ url_for('user.my_ingredients') }}" class="space-y-4">
-            <input type="hidden" name="ingredient_id" value="{{ ingredient.id }}">
-            
-            <div>
-                <label class="block mb-2">Название ингредиента</label>
-                <input type="text" name="name" value="{{ ingredient.name }}" 
-                       class="form-control" required>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block mb-2">Калории (на 100г)</label>
-                    <input type="number" step="0.1" name="calories" value="{{ ingredient.calories }}" 
-                           class="form-control" required>
-                </div>
-                <div>
-                    <label class="block mb-2">Белки (г на 100г)</label>
-                    <input type="number" step="0.1" name="proteins" value="{{ ingredient.proteins }}" 
-                           class="form-control" required>
-                </div>
-                <div>
-                    <label class="block mb-2">Жиры (г на 100г)</label>
-                    <input type="number" step="0.1" name="fats" value="{{ ingredient.fats }}" 
-                           class="form-control" required>
-                </div>
-                <div>
-                    <label class="block mb-2">Углеводы (г на 100г)</label>
-                    <input type="number" step="0.1" name="carbs" value="{{ ingredient.carbs }}" 
-                           class="form-control" required>
-                </div>
-            </div>
-            
-            {% if current_user.is_admin %}
-            <div class="flex items-center">
-                <input type="checkbox" name="is_public" id="is_public{{ ingredient.id }}" 
-                       {% if ingredient.is_public %}checked{% endif %} class="mr-2">
-                <label for="is_public{{ ingredient.id }}" class="text-sm">Сделать общедоступным</label>
-            </div>
-            {% endif %}
-            
-            <div class="flex gap-3 pt-4">
-                <button type="button" onclick="closeModal('editIngredientModal{{ ingredient.id }}')" 
-                        class="btn btn-outline flex-1">
-                    Отмена
-                </button>
-                <button type="submit" class="btn btn-primary flex-1">
-                    Сохранить изменения
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-{% endfor %}
 {% endblock %}

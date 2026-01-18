@@ -7,7 +7,7 @@
         <h1 class="text-4xl md:text-5xl font-bold mb-4">
             Расчёт рациона питания
         </h1>
-        <p class="text-xl text-muted max-w-3xl mx-auto mb-8">
+        <p class="text-xl max-w-3xl mx-auto mb-8">
             Планируйте свой рацион исходя из имеющихся продуктов и находите подходящие рецепты 
             для достижения ваших целей по КБЖУ.
         </p>
@@ -15,10 +15,10 @@
         {% if not current_user.is_authenticated %}
         <div class="flex sm:flex-row gap-4 justify-center">
             <button onclick="openModal('registerModal')" class="btn btn-primary btn-lg">
-                <i class="bi bi-person-plus"></i> Начать бесплатно
+                Начать бесплатно
             </button>
             <button onclick="openModal('loginModal')" class="btn btn-outline btn-lg">
-                <i class="bi bi-box-arrow-in-right"></i> Войти
+                Войти
             </button>
         </div>
         {% endif %}
@@ -61,66 +61,13 @@
             </p>
         </div>
     </div>
-    <!-- Как это работает -->
-    <div class="card mb-12">
-        <h2 class="text-2xl font-bold mb-6 text-center">Как это работает?</h2>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="text-center">
-                <div class="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mx-auto mb-4">
-                    1
-                </div>
-                <h4 class="font-semibold mb-2">Добавьте ингредиенты</h4>
-                <p class="text-sm text-muted">
-                    Создайте свою базу продуктов с КБЖУ
-                </p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mx-auto mb-4">
-                    2
-                </div>
-                <h4 class="font-semibold mb-2">Укажите цели</h4>
-                <p class="text-sm text-muted">
-                    Введите желаемые значения калорий, белков, жиров и углеводов
-                </p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mx-auto mb-4">
-                    3
-                </div>
-                <h4 class="font-semibold mb-2">Получите расчёт</h4>
-                <p class="text-sm text-muted">
-                    Система подберёт оптимальные количества ингредиентов
-                </p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-lg font-semibold mx-auto mb-4">
-                    4
-                </div>
-                <h4 class="font-semibold mb-2">Найдите рецепты</h4>
-                <p class="text-sm text-muted">
-                    Получите рекомендации подходящих рецептов
-                </p>
-            </div>
-        </div>
-        
-        {% if current_user.is_authenticated %}
-        <div class="text-center mt-8">
-            <a href="{{ url_for('user.calculate') }}" class="btn btn-primary btn-lg">
-                <i class="bi bi-lightning-charge"></i> Начать расчёт
-            </a>
-        </div>
-        {% endif %}
-    </div>
+
     <!-- Статистика -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="card">
             <h3 class="text-xl font-semibold mb-4">О системе</h3>
             <p class="text-muted mb-4">
-                Nutrition Calculator — это интеллектуальная система для расчёта 
+                Что готовить — это интеллектуальная система для расчёта 
                 и управления рационом питания, разработанная в рамках курсовой 
                 работы по дисциплине "Инструментальные средства информационных систем".
             </p>
@@ -129,48 +76,6 @@
                 <span class="badge badge-primary">Flask</span>
                 <span class="badge badge-primary">PostgreSQL</span>
                 <span class="badge badge-primary">Docker</span>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h3 class="text-xl font-semibold mb-4">Быстрый доступ</h3>
-            <div class="space-y-3">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('user.calculate') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-                        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <i class="bi bi-calculator-fill"></i>
-                        </div>
-                        <div>
-                            <div class="font-medium">Калькулятор рациона</div>
-                            <div class="text-sm text-muted">Расчёт оптимальных ингредиентов</div>
-                        </div>
-                    </a>
-                    
-                    <a href="{{ url_for('user.my_ingredients') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-                        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <i class="bi bi-basket"></i>
-                        </div>
-                        <div>
-                            <div class="font-medium">Мои ингредиенты</div>
-                            <div class="text-sm text-muted">Управление базой продуктов</div>
-                        </div>
-                    </a>
-                    
-                    <a href="{{ url_for('user.my_recipes') }}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-accent transition-colors">
-                        <div class="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                            <i class="bi bi-journal-text"></i>
-                        </div>
-                        <div>
-                            <div class="font-medium">Мои рецепты</div>
-                            <div class="text-sm text-muted">Коллекция рецептов</div>
-                        </div>
-                    </a>
-                {% else %}
-                    <p class="text-muted">Войдите в систему для доступа ко всем функциям</p>
-                    <button onclick="openModal('loginModal')" class="btn btn-primary">
-                        <i class="bi bi-box-arrow-in-right"></i> Войти
-                    </a>
-                {% endif %}
             </div>
         </div>
     </div>

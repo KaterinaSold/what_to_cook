@@ -23,7 +23,7 @@
     <div>
         <div class="card">
             <h2 class="text-2xl font-medium mb-6">
-                <i class="bi bi-calculator-fill mr-2"></i>Калькулятор рациона
+                Ваши цели
             </h2>
             
             <form method="POST" action="{{ url_for('user.calculate') }}" class="space-y-6">
@@ -31,7 +31,7 @@
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block mb-2">Калории</label>
+                        <label class="block mb-2">ККал</label>
                         {{ form.target_calories(class="form-control", placeholder="2000") }}
                     </div>
                     <div>
@@ -48,8 +48,8 @@
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary w-full py-3">
-                    <i class="bi bi-lightning-charge"></i> Рассчитать рацион
+                <button type="submit" class="btn btn-primary w-full py-3 mt-6">
+                    Рассчитать
                 </button>
             </form>
         </div>
@@ -57,7 +57,7 @@
         <!-- Доступные ингредиенты -->
         <div class="card mt-6">
             <h3 class="text-xl font-medium mb-4">
-                <i class="bi bi-basket mr-2"></i>Доступные ингредиенты
+                Доступные ингредиенты
             </h3>
             <div class="max-h-60 overflow-y-auto">
                 <div class="grid grid-cols-1 gap-2">
@@ -87,7 +87,7 @@
         <div class="card mb-6">
             <div class="flex items-center justify-between mb-6">
                 <h2 class="text-2xl font-medium">
-                    <i class="bi bi-check-circle-fill text-green-500 mr-2"></i>Результаты расчёта
+                    Результаты расчёта
                 </h2>
                 <span class="badge badge-primary">{{ result.total_weight|round(1) }} г</span>
             </div>
@@ -236,57 +236,6 @@
         
         {% else %}
         <!-- Инструкция при первом посещении -->
-        <div class="card">
-            <h2 class="text-2xl font-medium mb-6">
-                <i class="bi bi-info-circle mr-2"></i>Инструкция
-            </h2>
-            
-            <div class="space-y-4">
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                        1
-                    </div>
-                    <div>
-                        <h4 class="font-medium mb-1">Введите целевые значения КБЖУ</h4>
-                        <p class="text-sm text-muted-foreground">
-                            Укажите желаемые калории, белки, жиры и углеводы для вашего рациона.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                        2
-                    </div>
-                    <div>
-                        <h4 class="font-medium mb-1">Система рассчитает оптимальные ингредиенты</h4>
-                        <p class="text-sm text-muted-foreground">
-                            Алгоритм подберёт наилучшие количества доступных ингредиентов.
-                        </p>
-                    </div>
-                </div>
-                
-                <div class="flex items-start gap-3">
-                    <div class="flex-shrink-0 w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center">
-                        3
-                    </div>
-                    <div>
-                        <h4 class="font-medium mb-1">Получите рекомендации по рецептам</h4>
-                        <p class="text-sm text-muted-foreground">
-                            На основе результатов система предложит подходящие рецепты.
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-6 p-4 bg-accent rounded-lg">
-                <h4 class="font-medium mb-2">💡 Совет</h4>
-                <p class="text-sm text-muted-foreground">
-                    Для начала используйте справочные значения или рассчитайте свои цели
-                    с помощью калькулятора потребностей.
-                </p>
-            </div>
-        </div>
         {% endif %}
     </div>
 </div>
