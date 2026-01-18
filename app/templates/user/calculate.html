@@ -25,10 +25,10 @@
             <h2 class="text-2xl font-medium mb-6">
                 Ваши цели
             </h2>
-            
+
             <form method="POST" action="{{ url_for('user.calculate') }}" class="space-y-6">
                 {{ form.hidden_tag() }}
-                
+
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block mb-2">ККал</label>
@@ -47,32 +47,65 @@
                         {{ form.target_carbs(class="form-control", placeholder="250") }}
                     </div>
                 </div>
-                
+
+                <!-- Выбранные ингредиенты -->
+                <div id="selectedIngredientsContainer" class="space-y-2 mb-4">
+                    <!-- Ингредиенты будут добавляться динамически -->
+                </div>
+
                 <button type="submit" class="btn btn-primary w-full py-3 mt-6">
                     Рассчитать
                 </button>
             </form>
         </div>
-        
+
         <!-- Доступные ингредиенты -->
         <div class="card mt-6">
             <h3 class="text-xl font-medium mb-4">
                 Доступные ингредиенты
             </h3>
-            <div class="max-h-60 overflow-y-auto">
-                <div class="grid grid-cols-1 gap-2">
+
+            <!-- Поиск ингредиентов -->
+            <div class="mb-4">
+                <input type="text" id="ingredientSearch"
+                       placeholder="Поиск ингредиентов..."
+                       class="form-control w-full"
+                       onkeyup="searchIngredients()">
+            </div>
+
+            <div class="max-h-96 overflow-y-auto">
+                <div class="grid grid-cols-1 gap-2" id="ingredientsList">
                     {% for ingredient in ingredients %}
-                    <div class="flex items-center justify-between p-3 bg-accent rounded-lg">
+                    <div class="flex items-center justify-between p-3 bg-accent rounded-lg hover:bg-accent/80 transition-colors ingredient-item"
+                         data-ingredient-id="{{ ingredient.id }}"
+                         data-name="{{ ingredient.name }}"
+                         data-calories="{{ ingredient.calories }}"
+                         data-proteins="{{ ingredient.proteins }}"
+                         data-fats="{{ ingredient.fats }}"
+                         data-carbs="{{ ingredient.carbs }}">
                         <div>
                             <span class="font-medium">{{ ingredient.name }}</span>
                             <span class="text-sm text-muted-foreground ml-2">
-                                {{ ingredient.calories }} ккал
+                                {{ ingredient.calories }} ккал/100г
                             </span>
                         </div>
-                        <div class="text-sm">
-                            <span class="bg-primary text-primary-foreground px-2 py-1 rounded">
-                                {{ ingredient.proteins }}г
-                            </span>
+                        <div class="flex items-center gap-2">
+                            <div class="text-sm">
+                                <span class="bg-primary/20 text-primary px-2 py-1 rounded mr-2">
+                                    Белки: {{ ingredient.proteins }}г
+                                </span>
+                                <span class="bg-yellow-500/20 text-yellow-600 px-2 py-1 rounded mr-2">
+                                    Жиры: {{ ingredient.fats }}г
+                                </span>
+                                <span class="bg-purple-500/20 text-purple-600 px-2 py-1 rounded">
+                                    Углеводы: {{ ingredient.carbs }}г
+                                </span>
+                            </div>
+                            <button type="button"
+                                    onclick="addIngredientToSelection('{{ ingredient.id }}')"
+                                    class="btn btn-outline btn-sm">
+                                <i class="bi bi-plus"></i>
+                            </button>
                         </div>
                     </div>
                     {% endfor %}
@@ -80,7 +113,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Результаты -->
     <div>
         {% if result and result.success %}
@@ -91,7 +124,7 @@
                 </h2>
                 <span class="badge badge-primary">{{ result.total_weight|round(1) }} г</span>
             </div>
-            
+
             <!-- Сводка по КБЖУ -->
             <div class="grid grid-cols-4 gap-4 mb-6">
                 <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
@@ -105,7 +138,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
                     <div class="text-2xl font-medium text-blue-600 nutrition-value">
                         {{ result.total_nutrition.proteins }}
@@ -117,7 +150,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
                     <div class="text-2xl font-medium text-yellow-600 nutrition-value">
                         {{ result.total_nutrition.fats }}
@@ -129,7 +162,7 @@
                         </span>
                     </div>
                 </div>
-                
+
                 <div class="nutrition-card bg-card border border-border rounded-lg p-4 text-center">
                     <div class="text-2xl font-medium text-purple-600 nutrition-value">
                         {{ result.total_nutrition.carbs }}
@@ -142,7 +175,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Рекомендуемые ингредиенты -->
             <h3 class="text-xl font-medium mb-4">Рекомендуемые ингредиенты</h3>
             <div class="space-y-3">
@@ -170,14 +203,14 @@
                 {% endfor %}
             </div>
         </div>
-        
+
         <!-- Рекомендуемые рецепты -->
         {% if best_recipes %}
         <div class="card">
             <h2 class="text-2xl font-medium mb-6">
                 <i class="bi bi-stars mr-2"></i>Рекомендуемые рецепты
             </h2>
-            
+
             <div class="space-y-4">
                 {% for recipe_data in best_recipes %}
                 <div class="border border-border rounded-lg p-4 hover:bg-accent transition-colors">
@@ -192,7 +225,7 @@
                             </span>
                         </div>
                     </div>
-                    
+
                     <div class="grid grid-cols-4 gap-2 mb-3">
                         <div class="text-center">
                             <div class="text-sm font-medium">{{ recipe_data.nutrition.calories }}</div>
@@ -211,19 +244,19 @@
                             <div class="text-xs text-muted-foreground">углеводы</div>
                         </div>
                     </div>
-                    
+
                     <div class="text-sm text-muted-foreground mb-3">
                         {% if recipe_data.recipe.description %}
                         <p>{{ recipe_data.recipe.description|truncate(100) }}</p>
                         {% endif %}
                     </div>
-                    
+
                     <div class="flex items-center justify-between">
                         <div class="text-xs text-muted-foreground">
                             <i class="bi bi-basket"></i>
                             {{ recipe_data.matching_count }} совпадающих ингредиентов
                         </div>
-                        <a href="{{ url_for('user.my_recipes') }}?recipe={{ recipe_data.recipe.id }}" 
+                        <a href="{{ url_for('user.my_recipes') }}?recipe={{ recipe_data.recipe.id }}"
                            class="text-sm text-primary hover:underline">
                             Подробнее →
                         </a>
@@ -233,10 +266,159 @@
             </div>
         </div>
         {% endif %}
-        
+
         {% else %}
         <!-- Инструкция при первом посещении -->
         {% endif %}
     </div>
 </div>
+
+<!-- Скрытые поля для передачи выбранных ингредиентов -->
+<div id="hiddenIngredientsFields"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Объект для хранения выбранных ингредиентов
+    let selectedIngredients = {};
+
+    // Функция добавления ингредиента в список выбранных
+    function addIngredientToSelection(ingredientId) {
+        const ingredientElement = document.querySelector(`[data-ingredient-id="${ingredientId}"]`);
+        if (!ingredientElement) return;
+
+        // Если ингредиент уже выбран, показываем сообщение
+        if (selectedIngredients[ingredientId]) {
+            showNotification('Этот ингредиент уже добавлен', 'info');
+            return;
+        }
+
+        const ingredientName = ingredientElement.dataset.name;
+
+        // Создаем элемент для выбранного ингредиента
+        const container = document.getElementById('selectedIngredientsContainer');
+        const ingredientHtml = `
+            <div class="flex items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg" id="selectedIngredient_${ingredientId}">
+                <div class="flex-1">
+                    <div class="font-medium">${ingredientName}</div>
+                </div>
+                <div class="w-32">
+                    <input type="number"
+                           class="form-control"
+                           id="amount_${ingredientId}"
+                           placeholder="г"
+                           min="1"
+                           value="100"
+                           onchange="updateIngredientAmount(${ingredientId}, this.value)">
+                </div>
+                <button type="button"
+                        onclick="removeIngredientFromSelection(${ingredientId})"
+                        class="btn btn-outline btn-icon">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+        `;
+
+        container.insertAdjacentHTML('beforeend', ingredientHtml);
+
+        // Создаем скрытое поле для ID ингредиента
+        const hiddenIdField = document.createElement('input');
+        hiddenIdField.type = 'hidden';
+        hiddenIdField.name = 'ingredient_id_' + ingredientId;
+        hiddenIdField.value = ingredientId;
+        container.appendChild(hiddenIdField);
+
+        // Добавляем в объект выбранных ингредиентов
+        selectedIngredients[ingredientId] = {
+            id: ingredientId,
+            name: ingredientName,
+            amount: 100,
+            calories: parseFloat(ingredientElement.dataset.calories),
+            proteins: parseFloat(ingredientElement.dataset.proteins),
+            fats: parseFloat(ingredientElement.dataset.fats),
+            carbs: parseFloat(ingredientElement.dataset.carbs)
+        };
+
+        showNotification(`Добавлен "${ingredientName}"`, 'success');
+    }
+
+    // Функция обновления количества ингредиента
+    function updateIngredientAmount(ingredientId, amount) {
+        if (selectedIngredients[ingredientId]) {
+            selectedIngredients[ingredientId].amount = parseFloat(amount) || 0;
+
+            // Обновляем значение в скрытом поле
+            const amountField = document.getElementById(`amount_${ingredientId}`);
+            if (amountField) {
+                amountField.value = parseFloat(amount) || 0;
+            }
+        }
+    }
+
+    // Функция удаления ингредиента из выбранных
+    function removeIngredientFromSelection(ingredientId) {
+        const element = document.getElementById(`selectedIngredient_${ingredientId}`);
+        if (element) {
+            element.remove();
+        }
+
+        // Удаляем скрытое поле
+        const hiddenField = document.querySelector(input[name="ingredient_id_${ingredientId}"]);
+        if (hiddenField) {
+            hiddenField.remove();
+        }
+
+        delete selectedIngredients[ingredientId];
+        showNotification('Ингредиент удалён', 'info');
+    }
+
+    // Функция поиска ингредиентов
+    function searchIngredients() {
+        const searchTerm = document.getElementById('ingredientSearch').value.toLowerCase();
+        const ingredientItems = document.querySelectorAll('.ingredient-item');
+
+        ingredientItems.forEach(item => {
+            const name = item.dataset.name.toLowerCase();
+            if (name.includes(searchTerm)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    // Обработчик отправки формы
+    document.getElementById('calculateForm')?.addEventListener('submit', function(e) {
+        // Проверяем, что выбраны ингредиенты
+        if (Object.keys(selectedIngredients).length === 0) {
+            e.preventDefault();
+            showNotification('Добавьте хотя бы один ингредиент', 'error');
+            return;
+        }
+
+        // Проверяем, что указаны цели
+        const targets = ['target_calories', 'target_proteins', 'target_fats', 'target_carbs'];
+        let hasTargets = false;
+
+        targets.forEach(field => {
+            const value = document.getElementById(field)?.value;
+            if (value && parseFloat(value) > 0) {
+                hasTargets = true;
+            }
+        });
+
+        if (!hasTargets) {
+            e.preventDefault();
+            showNotification('Установите хотя бы одну цель (калории, белки, жиры или углеводы)', 'error');
+            return;
+        }
+
+        updateHiddenFields();
+    });
+
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Calculator page loaded');
+    });
+</script>
 {% endblock %}
