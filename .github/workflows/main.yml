@@ -215,10 +215,10 @@ jobs:
           echo "Validating project structure..."
 
           # Проверяем основные файлы
-          if [ -f "app/init.py" ]; then
-            echo "OK: app/init.py exists"
+          if [ -f "app/__init__.py" ]; then
+            echo "OK: app/__init__.py exists"
           else
-            echo "ERROR: app/init.py not found"
+            echo "ERROR: app/__init__.py not found"
             exit 1
           fi
 
@@ -226,6 +226,40 @@ jobs:
             echo "OK: app/models.py exists"
           else
             echo "ERROR: app/models.py not found"
+            exit 1
+
+          if [ -f "app/auth.py" ]; then
+            echo "OK: app/auth.py exists"
+          else
+            echo "ERROR: app/auth.py not found"
+            exit 1
+          fi
+
+          if [ -f "app/calculation.py" ]; then
+            echo "OK: app/calculation.py exists"
+          else
+            echo "ERROR: app/calculation.py not found"
+            exit 1
+          fi
+
+          if [ -f "app/forms.py" ]; then
+            echo "OK: app/forms.py exists"
+          else
+            echo "ERROR: app/forms.py not found"
+            exit 1
+          fi
+
+          if [ -f "app/user_routes.py" ]; then
+            echo "OK: app/user_routes exists"
+          else
+            echo "ERROR: app/user_routes not found"
+            exit 1
+          fi
+
+          if [ -f "app/admin_routes.py" ]; then
+            echo "OK: app/admin_routes exists"
+          else
+            echo "ERROR: app/admin_routes not found"
             exit 1
           fi
 
