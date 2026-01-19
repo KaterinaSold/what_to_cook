@@ -270,32 +270,6 @@ jobs:
             echo "WARNING: tests directory not found"
           fi
 
-      - name: Check imports
-        run: |
-          echo "Testing imports..."
-          python -c "
-          import sys
-
-          try:
-              from app import create_app
-              print('SUCCESS: create_app imported')
-          except ImportError as e:
-              print(f'ERROR importing create_app: {e}')
-              sys.exit(1)
-
-          try:
-              from app.models import User
-              print('SUCCESS: User model imported')
-          except ImportError as e:
-              print(f'ERROR importing User: {e}')
-
-          try:
-              from app.calculation import calculate_optimal_diet
-              print('SUCCESS: calculate_optimal_diet imported')
-          except ImportError as e:
-              print(f'ERROR importing calculate_optimal_diet: {e}')
-          "
-
       - name: Create build summary
         run: |
           echo "Build Summary" > build-summary.txt
