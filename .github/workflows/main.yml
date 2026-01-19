@@ -6,6 +6,29 @@ on:
   pull_request:
     branches: [main]
 
+  # Ручной запуск
+  workflow_dispatch:
+    # Параметры для ручного запуска
+    inputs:
+      environment:
+        description: 'Environment to run tests in'
+        required: false
+        default: 'test'
+        type: choice
+        options:
+        - test
+        - staging
+      run_extended_tests:
+        description: 'Run extended tests'
+        required: false
+        default: false
+        type: boolean
+      branch:
+        description: 'Branch to run on'
+        required: false
+        default: 'main'
+        type: string
+
 env:
   PYTHON_VERSION: '3.11'
 
