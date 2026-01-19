@@ -1,4 +1,11 @@
 __pycache__/
 app/__pycache__
-venv/"venv/" 
+venv/"venv/"
 venv/pyvenv.cfg
+# Тесты
+.coverage
+htmlcov/
+.coverage.*
+.pytest_cache/
+test.db
+*.pyc

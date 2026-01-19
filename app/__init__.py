@@ -16,14 +16,19 @@ from app.models import User
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-def create_app():
+def create_app(config_class=None):
     app = Flask(__name__)
 
     # Конфигурация
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cat@db/nutrition_db'
-    app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    if config_class:
+        app.config.from_object(config_class)
+    else:
+        # Конфигурация по умолчанию
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:cat@db/nutrition_db'
+        app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
+        app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # ... остальной код без изменений
     # Инициализация расширений
     db.init_app(app)
     login_manager.init_app(app)
